@@ -6,6 +6,7 @@ import {
   useState,
   MouseEvent,
   WheelEvent,
+  TouchEvent,
   useCallback,
 } from "react";
 import {
@@ -29,7 +30,7 @@ interface CanvasProps {
   onMouseMove: (pos: Point) => void;
   onMouseUp: (pos: Point) => void;
 }
-
+// touch
 export const Canvas = ({
   objects,
   selectedId,
@@ -55,6 +56,8 @@ export const Canvas = ({
     width: 800,
     height: 600,
   });
+  const [touchPanStart, setTouchPanStart] = useState({ x: 0, y: 0 });
+  const [isDrawing, setIsDrawing] = useState(false);
 
   // Handle container resize
   useEffect(() => {
@@ -169,6 +172,73 @@ export const Canvas = ({
 
     const pos = screenToCanvas(e.clientX, e.clientY);
     onMouseUp(pos);
+  };
+
+  // Touch handlers
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 0) return;
+    e.preventDefault();
+
+    // Two fingers - pan
+    if (e.touches.length === 2) {
+      setTouchPanStart({
+        x: e.touches[0].clientX - offset.x,
+        y: e.touches[0].clientY - offset.y,
+      });
+      setIsDrawing(false);
+      return;
+    }
+
+    // One finger - drawing
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const pos = screenToCanvas(touch.clientX, touch.clientY);
+
+      // Only trigger if within board bounds
+      if (
+        pos.x >= 0 &&
+        pos.x <= BOARD_WIDTH &&
+        pos.y >= 0 &&
+        pos.y <= BOARD_HEIGHT
+      ) {
+        onMouseDown(pos);
+        setIsDrawing(true);
+      }
+    }
+  };
+
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 0) return;
+    e.preventDefault();
+
+    // Two fingers - pan
+    if (e.touches.length === 2) {
+      setOffset({
+        x: e.touches[0].clientX - touchPanStart.x,
+        y: e.touches[0].clientY - touchPanStart.y,
+      });
+      setIsDrawing(false);
+      return;
+    }
+
+    // One finger - drawing
+    if (e.touches.length === 1 && isDrawing) {
+      const touch = e.touches[0];
+      const pos = screenToCanvas(touch.clientX, touch.clientY);
+      onMouseMove(pos);
+    }
+  };
+
+  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    // Drawing end
+    if (isDrawing && e.changedTouches.length > 0) {
+      const touch = e.changedTouches[0];
+      const pos = screenToCanvas(touch.clientX, touch.clientY);
+      onMouseUp(pos);
+      setIsDrawing(false);
+    }
   };
 
   // Zoom with mouse wheel
@@ -375,7 +445,10 @@ export const Canvas = ({
           onMouseUp({ x: 0, y: 0 });
         }}
         onWheel={handleWheel}
-        style={{ cursor: getCursor() }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ cursor: getCursor(), touchAction: "none" }}
       >
         <div
           style={{

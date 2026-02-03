@@ -29,9 +29,9 @@ export const Whiteboard = ({ boardId }: WhiteboardProps) => {
   } = useWhiteboard(boardId);
 
   return (
-    <div className="h-screen w-screen bg-[#fafafa] flex flex-col overflow-hidden">
+    <div className="h-[100dvh] w-screen bg-[#fafafa] flex flex-col overflow-hidden">
       {/* Canvas Area */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden min-h-0">
         <Canvas
           objects={objects}
           selectedId={selectedId}

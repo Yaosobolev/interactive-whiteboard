@@ -51,13 +51,13 @@ const Popup = ({
   useLayoutEffect(() => {
     if (isOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      const scrollX = window.scrollX;
-      const scrollY = window.scrollY;
       const viewportWidth = window.innerWidth;
 
       const gap = 12;
 
-      let leftPos = rect.left + rect.width / 2 + scrollX;
+      // Для position: fixed используем координаты напрямую из getBoundingClientRect
+      // БЕЗ добавления scroll, так как fixed позиционирование относительно viewport
+      let leftPos = rect.left + rect.width / 2;
 
       const halfWidth = width / 2;
 
@@ -67,13 +67,13 @@ const Popup = ({
         leftPos = viewportWidth - 10 - halfWidth;
       }
 
-      const arrowAbsolutePos = rect.left + rect.width / 2 + scrollX;
+      const arrowAbsolutePos = rect.left + rect.width / 2;
       const arrowOffset = arrowAbsolutePos - (leftPos - halfWidth);
 
       const finalLeft = leftPos - halfWidth;
 
       setPosition({
-        top: rect.top + scrollY - gap,
+        top: rect.top - gap, // Убрали scrollY
         left: finalLeft,
         arrowLeft: arrowOffset,
       });
@@ -147,8 +147,8 @@ export const Toolbar = ({
   const colorBtnRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <div className="p-2 sm:p-3 md:p-4 lg:p-5 flex justify-center">
-      <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-1.5 sm:p-2 flex items-center gap-1 sm:gap-2 max-w-full overflow-x-auto">
+    <div className="p-1 sm:p-2 md:p-3 lg:p-4 flex justify-center flex-shrink-0">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-1 sm:p-1.5 flex items-center gap-0.5 sm:gap-1 md:gap-2 max-w-full overflow-x-auto">
         {/* Tools */}
         <div className="flex items-center gap-0.5 sm:gap-1 px-0.5 sm:px-1 flex-shrink-0">
           {tools.map((t) => (
@@ -156,7 +156,7 @@ export const Toolbar = ({
               key={t.id}
               onClick={() => onToolChange(t.id)}
               className={`
-                w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-lg sm:rounded-xl flex items-center justify-center
+                w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-lg sm:rounded-xl flex items-center justify-center
                 transition-all duration-200
                 ${
                   tool === t.id
@@ -165,12 +165,14 @@ export const Toolbar = ({
                 }
               `}
             >
-              <span className="scale-90 sm:scale-100">{t.icon}</span>
+              <span className="scale-75 sm:scale-90 md:scale-100">
+                {t.icon}
+              </span>
             </button>
           ))}
         </div>
 
-        <div className="w-px h-6 sm:h-8 bg-gray-200 flex-shrink-0" />
+        <div className="w-px h-5 sm:h-6 md:h-8 bg-gray-200 flex-shrink-0" />
 
         {/* Stroke Width */}
         <div className="relative flex-shrink-0">
@@ -182,15 +184,18 @@ export const Toolbar = ({
                 setShowColorPicker(false);
               }}
               className={`
-                w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center
+                w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg sm:rounded-xl flex items-center justify-center
                 transition-all duration-200 text-gray-500 hover:text-gray-700
                 ${showStrokePicker ? "bg-gray-100" : "hover:bg-gray-100"}
               `}
             >
               <div className="relative">
-                <SlidersHorizontal size={18} className="text-gray-500" />
+                <SlidersHorizontal
+                  size={16}
+                  className="sm:scale-100 scale-90 text-gray-500"
+                />
                 <div
-                  className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-gray-700 flex items-center justify-center"
+                  className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-gray-700 flex items-center justify-center"
                   style={{ transform: `scale(${0.5 + strokeWidth / 30})` }}
                 />
               </div>
@@ -200,7 +205,7 @@ export const Toolbar = ({
               isOpen={showStrokePicker}
               onClose={() => setShowStrokePicker(false)}
               triggerRef={strokeBtnRef}
-              width={220} // Указываем ширину явно для корректного расчета границ
+              width={220}
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
@@ -243,9 +248,8 @@ export const Toolbar = ({
             </Popup>
           </div>
 
-          {/* Desktop Stroke controls... (оставляем как было) */}
+          {/* Desktop Stroke controls */}
           <div className="hidden lg:flex items-center gap-3 px-3">
-            {/* ... код десктопа без изменений ... */}
             <div className="flex items-center gap-1">
               {[2, 4, 8, 12].map((width) => (
                 <button
@@ -296,13 +300,13 @@ export const Toolbar = ({
                 setShowStrokePicker(false);
               }}
               className={`
-                w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center
+                w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg sm:rounded-xl flex items-center justify-center
                 transition-all duration-200 relative hover:bg-gray-100
                 ${showColorPicker ? "bg-gray-100" : ""}
               `}
             >
               <div
-                className="w-6 h-6 rounded-full border-2 border-white shadow-md"
+                className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white shadow-md"
                 style={{ backgroundColor: color }}
               />
             </button>
@@ -311,9 +315,8 @@ export const Toolbar = ({
               isOpen={showColorPicker}
               onClose={() => setShowColorPicker(false)}
               triggerRef={colorBtnRef}
-              width={184} // (4 колонки * 32px) + (3 gaps * 8px) + padding ~ 184px
+              width={184}
             >
-              {/* Добавил фиксированную ширину контейнера и центрирование */}
               <div className="grid grid-cols-4 gap-2 w-[160px] justify-items-center mx-auto">
                 {COLORS.map((c) => (
                   <button
@@ -337,7 +340,7 @@ export const Toolbar = ({
             </Popup>
           </div>
 
-          {/* Desktop Colors... (оставляем как было) */}
+          {/* Desktop Colors */}
           <div className="hidden xl:flex items-center gap-1.5 px-2">
             {COLORS.map((c) => (
               <button
