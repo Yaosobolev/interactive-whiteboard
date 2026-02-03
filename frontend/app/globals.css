@@ -180,7 +180,17 @@ input[type="range"]::-moz-range-thumb {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    height: 100%;
+    height: 100dvh; /* dynamic viewport height для мобильных */
+    overflow: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
   }
 }
